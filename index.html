@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>유랑강호 - 0.1</title>
+<style>
+:root{
+  --bg:#10100f; --panel:#191816; --panel2:#211f1b; --line:#4b4030;
+  --gold:#c9a45c; --gold2:#e2c27b; --text:#e8e1d5; --muted:#9e9689;
+  --green:#78b88a; --red:#c97878;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top,#242019 0,#10100f 55%);color:var(--text);font-family:"Noto Serif KR","Malgun Gothic",serif;min-height:100vh}
+#app{max-width:760px;margin:0 auto;padding:42px 22px 60px}
+.screen{display:none;animation:fade .25s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.title{text-align:center;margin:50px 0 60px}
+.title .hanzi{font-size:20px;letter-spacing:8px;color:var(--muted);margin-bottom:10px}
+.title h1{font-size:62px;letter-spacing:14px;color:var(--gold2);margin:0 0 18px;font-weight:500}
+.title p{color:var(--muted);letter-spacing:3px}
+.menu{display:flex;flex-direction:column;gap:12px;max-width:320px;margin:auto}
+button{font:inherit;cursor:pointer}
+.menu button,.choice-btn,.back-btn,.start-btn{
+  border:1px solid var(--line);background:rgba(25,24,22,.92);color:var(--text);
+  min-height:52px;padding:12px 18px;border-radius:5px;transition:.18s;
+}
+.menu button:hover,.choice-btn:hover,.back-btn:hover,.start-btn:hover{border-color:var(--gold);color:var(--gold2);background:var(--panel2)}
+h2{font-weight:500;color:var(--gold2);letter-spacing:2px}
+.section-head{text-align:center;margin:20px 0 34px}
+.prompt{text-align:center;color:var(--text);font-size:20px;line-height:1.8;margin-bottom:28px}
+.jobs{display:flex;flex-direction:column;gap:9px}
+.job{
+  width:100%;text-align:center;border:1px solid var(--line);background:var(--panel);
+  color:var(--text);padding:17px 19px;border-radius:4px;
+}
+.job:hover,.job.selected{border-color:var(--gold);background:var(--panel2)}
+.job-name{font-size:20px;color:var(--gold2)}
+.job-sub{font-size:13px;color:var(--muted);margin-top:5px}
+.detail{margin-top:22px;border-top:1px solid var(--line);padding-top:22px}
+.trait{color:var(--gold2);font-size:18px;margin:6px 0 10px}
+.change{font-size:13px;color:var(--muted)}
+.plus{color:var(--green)} .minus{color:var(--red)}
+.desc{line-height:1.8;color:#d0c8bb;margin:18px 0}
+.item{color:#d8c28f;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:15px 0 20px}
+.stat{background:#141311;border:1px solid #373127;padding:9px;text-align:center}
+.stat small{display:block;color:#d8d1c5;font-size:11px;margin-bottom:3px}
+.stat b{font-size:18px;font-weight:500;color:var(--gold2)}
+.actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+.start-btn{border-color:#76603a;color:var(--gold2)}
+.gender-wrap{max-width:520px;margin:0 auto}
+.gender-note{text-align:center;color:var(--muted);font-size:13px;margin:0 0 22px}
+.gender-list{display:flex;flex-direction:column;gap:10px}
+.gender-card{border:1px solid var(--line);background:var(--panel);padding:18px;text-align:center;border-radius:4px}
+.gender-card:hover,.gender-card.selected{border-color:var(--gold);background:var(--panel2)}
+.gender-card strong{display:block;color:var(--gold2);font-size:20px;margin-bottom:5px}
+.gender-card span{font-size:13px;color:var(--muted)}
+.confirm{margin-top:25px;text-align:center}
+.small{font-size:12px;color:var(--muted)}
+.notice{margin-top:25px;padding:15px;border:1px solid #3b3328;background:#151411;color:#c9c0b2;line-height:1.8}
+@media(max-width:560px){
+  #app{padding:25px 15px 45px}.title{margin:35px 0 45px}.title h1{font-size:42px;letter-spacing:8px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+
+#transition{
+  position:fixed;inset:0;background:#0b0a09;z-index:9999;
+  opacity:0;pointer-events:none;display:flex;align-items:center;justify-content:center;
+  transition:opacity 1.2s ease;
+}
+#transition.show{opacity:1;pointer-events:auto}
+#transition .transition-text{
+  color:#c9a45c;font-size:17px;letter-spacing:3px;opacity:0;
+  transform:translateY(8px);transition:opacity .5s ease .18s,transform .5s ease .18s;
+}
+#transition.show .transition-text{opacity:1;transform:none}
+
+
+/* 게임 화면 전체 텍스트 드래그 선택 방지 */
+html, body, #app, #transition, #app * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+}
+
+
+.transition-text-in{animation:transitionTextIn 1s ease both}
+@keyframes transitionTextFade{
+  from{opacity:0; transform:translateY(4px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+.job-detail-name{
+  font-size:22px;
+  color:var(--gold2);
+  letter-spacing:2px;
+  margin-bottom:2px;
+}
+
+.locked-job{
+  position:relative;
+  display:block;
+  text-align:center;
+  opacity:.58;
+  padding-left:52px;
+  padding-right:52px;
+}
+.locked-job:hover,.locked-job.selected{
+  border-color:var(--gold);
+  background:var(--panel2);
+  color:var(--text);
+}
+.lock-icon{
+  position:absolute;
+  left:22px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:17px;
+  filter:grayscale(1);
+}
+.locked-job .job-name{color:var(--muted)}
+.locked-detail .detail{opacity:.88}
+.lock-note{text-align:center;color:var(--muted);font-size:12px;margin-top:14px}
+.unknown{color:var(--muted);letter-spacing:4px;font-weight:bold}
+
+
+.proceed{
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  margin-top:16px;
+  padding:12px 18px;
+  border:1px solid var(--line);
+  border-radius:4px;
+  background:var(--panel);
+  color:var(--gold2);
+  font:inherit;
+  font-size:14px;
+  letter-spacing:1px;
+  cursor:pointer;
+}
+.proceed:hover{
+  border-color:var(--gold);
+  background:var(--panel2);
+  color:var(--gold);
+}
+
+
+.game-title{
+  text-align:center;
+  margin-bottom:8px;
+}
+.game-title .title-main{
+  color:var(--gold2);
+  font-size:30px;
+  letter-spacing:7px;
+  line-height:1.15;
+}
+.game-title .title-hanja{
+  color:var(--muted);
+  font-size:17px;
+  letter-spacing:5px;
+  margin-top:7px;
+  line-height:1.2;
+}
+.game-title .title-sub{
+  color:var(--muted);
+  font-size:12px;
+  letter-spacing:2px;
+  margin-top:10px;
+}
+
+
+
+
+
+.final-question{
+  text-align:center;
+  font-size:24px;
+  line-height:1.5;
+  letter-spacing:2px;
+  color:var(--gold2);
+  margin:18px 0;
+}
+
+
+.gender-actions button,
+.final-actions button,
+.final-confirm button{
+  width:180px !important;
+  min-width:180px !important;
+  max-width:180px !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  padding:0 18px !important;
+}
+.final-actions,
+.final-confirm{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  margin:16px auto 0;
+}
+
+
+.gender-actions{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  margin:16px auto 0;
+}
+.gender-actions button{
+  flex:0 0 180px !important;
+  width:180px !important;
+  min-width:180px !important;
+  max-width:180px !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+}
+.final-actions{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  width:100%;
+  margin:16px auto 0;
+}
+.final-actions button{
+  flex:0 0 180px !important;
+  width:180px !important;
+  min-width:180px !important;
+  max-width:180px !important;
+  height:44px !important;
+  min-height:44px !important;
+  max-height:44px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+}
+
+
+/* Web/mobile compatibility */
+html, body { width:100%; min-width:0; overflow-x:hidden; }
+*, *::before, *::after { box-sizing:border-box; }
+button { min-height:44px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+@media (max-width:600px){
+  #app { width:100%; max-width:100%; padding-left:14px; padding-right:14px; }
+  .title h1 { font-size:clamp(42px,14vw,62px); letter-spacing:clamp(7px,3vw,14px); }
+  .job, .gender-card { width:100%; max-width:100%; }
+  .final-actions, .gender-actions { flex-wrap:wrap; }
+  .final-actions button, .gender-actions button { width:180px; min-width:0; }
+}
+
+</style>
+</head>
+<body>
+<div id="transition" aria-hidden="true"><div class="transition-text" id="transitionText"></div></div>
+<div id="app">
+
+<section id="titleScreen" class="screen active">
+  <div class="title">
+    <h1>유랑강호</h1>
+    <div class="hanzi">流浪江湖</div>
+    <p>한 번의 삶, 한 번의 강호.</p>
+  </div>
+  <div class="menu">
+    <button type="button" id="startBtn">입강</button>
+    <button type="button" id="loadBtn">속행</button>
+    <button type="button" id="quitBtn">하산</button>
+  </div>
+  <div id="titleNotice" class="notice" style="display:none;text-align:center"></div>
+</section>
+
+<section id="jobScreen" class="screen">
+  <div class="section-head">
+    <h2>강호에 들기 전</h2>
+    <div class="prompt">당신은 어떤 삶으로부터 강호에 발을 들였습니까?</div>
+  </div>
+  <div id="jobs" class="jobs"></div>
+  <div id="jobDetail"></div>
+  <div class="actions" style="margin-top:20px">
+    <button type="button" id="jobBack" class="back-btn">뒤로</button>
+  </div>
+</section>
+
+<section id="genderScreen" class="screen">
+  <div class="section-head">
+    <h2>신분을 정하다</h2>
+    <div class="prompt">강호에 발을 들인 당신은 어떤 모습입니까?</div>
+  </div>
+  <div class="gender-wrap">
+    <p class="gender-note">이는 기질에 영향을 주지 않습니다. 다만 훗날의 인연과 사건에 흔적을 남깁니다.</p>
+    <div class="gender-list">
+      <button type="button" class="gender-card" data-gender="사내">
+        <strong>사내</strong><span>사내의 몸으로 강호에 들어선다.</span>
+      </button>
+      <button type="button" class="gender-card" data-gender="여인">
+        <strong>여인</strong><span>여인의 몸으로 강호에 들어선다.</span>
+      </button>
+    </div>
+    <div class="actions" style="margin-top:22px">
+      <div class="gender-actions"><div class="gender-actions"><div class="gender-actions"><button type="button" id="beginLife" class="start-btn" style="margin-top:12px">다음</button><button type="button" id="genderBack" class="back-btn">뒤로</button></div></div></div>
+    </div>
+  </div>
+</section>
+
+
+<section id="confirmScreen" class="screen">
+  <div class="section-head">
+    <h2>선택</h2>
+    <div class="prompt final-question">이 삶을 선택할 것인가</div>
+  </div>
+  <div class="gender-wrap">
+    <div id="lifeSummary" class="notice" style="text-align:center"></div>
+    <div class="actions" style="margin-top:25px">
+      <div class="final-actions"><button type="button" id="confirmLife" class="start-btn">선택한다</button><button type="button" id="confirmBack" class="back-btn">돌아간다</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="gameScreen" class="screen">
+  <div class="section-head">
+    <h2>강호행의 시작</h2>
+    <div id="gameIntro" class="prompt"></div>
+  </div>
+  <div class="notice" id="gameSummary"></div>
+</section>
+
+</div>
+
+<script>
+const jianghuPhrases=["강호에는 정해진 길이 없다.", "한 걸음이 운명을 바꾼다.", "칼보다 무서운 것은 사람의 마음이다.", "오늘의 인연이 내일의 원수가 된다.", "강호의 밤은 길고, 사람의 마음은 알 수 없다.", "명성은 바람처럼 오고, 원한은 그림자처럼 따른다.", "살아남는 자에게만 다음 장이 열린다.", "무림에는 수많은 길이 있고, 당신의 길도 그중 하나다."];
+const introLines = {
+  default: [
+    "그날, 당신은 강호에 발을 들였다.",
+    "갈 곳은 정해지지 않았다. 다만 앞으로 나아갈 뿐이다.",
+    "강호는 당신을 알지 못했다. 하지만 그것도 오래가지는 않을 것이다.",
+    "한 걸음 내디디자, 세상은 강호가 되었다.",
+    "당신의 이야기는 아직 아무것도 쓰이지 않았다.",
+    "아직은 이름 없는 한 사람. 그러나 강호의 이야기는 이제 시작되었다.",
+    "강호는 넓고, 인심은 알 수 없었다.",
+    "누구도 당신을 기다리지 않는다. 강호란 원래 그런 곳이다."
+  ],
+  wanderer: [
+    "뒤돌아보아도, 돌아갈 곳은 없었다.",
+    "불타버린 고향을 뒤로하고, 당신은 홀로 길을 나섰다.",
+    "가진 것은 낡은 목걸이 하나. 갈 곳은 세상 전부였다."
+  ],
+  farmer: [
+    "산을 내려선 순간, 익숙했던 흙냄새가 멀어졌다.",
+    "평생 일군 산을 뒤로하고, 당신은 처음으로 먼 길을 나섰다.",
+    "손에는 낡은 손도끼가 들려 있었다. 세상은 산보다 넓었다."
+  ],
+  slave: [
+    "쇠사슬은 풀렸지만, 아직 갈 길은 멀었다.",
+    "평생 남의 뜻대로 살았다. 이제 처음으로 자신의 길을 택했다.",
+    "굳은 손에 남은 것은 상처뿐이었다. 그러나 발걸음은 멈추지 않았다."
+  ],
+  noble: [
+    "처음으로 자신의 발로 세상을 걸었다.",
+    "비단옷을 벗어던진 뒤에야, 세상의 거친 바람이 느껴졌다.",
+    "문밖의 세상은 가르침으로 배울 수 있는 곳이 아니었다."
+  ],
+  orphan: [
+    "누구도 기다리지 않았다. 누구도 찾지 않았다.",
+    "홀로 살아온 세월처럼, 이번 길도 혼자였다.",
+    "의지할 곳은 없었다. 그래서 오히려 발걸음은 가벼웠다."
+  ]
+};
+
+
+function randomJianghuPhrase(){
+  const text=document.querySelector(".transition-text");
+  if(!text || typeof jianghuPhrases==="undefined") return;
+  text.textContent=jianghuPhrases[Math.floor(Math.random()*jianghuPhrases.length)];
+}
+
+function randomIntro(jobId){
+  const pool = introLines[jobId] || introLines.default;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+const jobs = [
+  {
+    id:"wanderer", name:"부랑자", trait:"무의무탁(無依無托)",
+    changes:"민첩 +2 / 체력 -2",
+    stats:{체력:2,근력:4,민첩:6,지혜:4,정신:4,매력:4,내공:4,운:4},
+    item:"빛 바랜 목걸이",
+    desc:"고향이 도적떼의 습격으로 불타 사라졌습니다. 가진 것은 집안 대대로 내려오는 목걸이 하나뿐입니다."
+  },
+  {
+    id:"farmer", name:"화전민", trait:"자급자족(自給自足)",
+    changes:"체력 +2 / 지혜 -2",
+    stats:{체력:6,근력:4,민첩:4,지혜:2,정신:4,매력:4,내공:4,운:4},
+    item:"낡은 손도끼",
+    desc:"산을 터전으로 삼아 자신의 몸으로 먹고살았습니다. 육체는 단련됐지만 글과 세상 이치에는 익숙하지 않습니다."
+  },
+  {
+    id:"slave", name:"노예", trait:"백절불굴(百折不屈)",
+    changes:"근력 +2 / 운 -2",
+    stats:{체력:4,근력:6,민첩:4,지혜:4,정신:4,매력:4,내공:4,운:2},
+    item:"녹슨 쇠사슬",
+    desc:"혹독한 노동을 견디며 누구보다 단단한 몸을 얻었지만, 자신의 의지와 관계없이 삶이 결정되던 세월은 운명에 대한 냉소를 남겼습니다."
+  },
+  {
+    id:"orphan", name:"고아", trait:"유아독존(唯我獨尊)",
+    changes:"정신 +2 / 내공 -2",
+    stats:{체력:4,근력:4,민첩:4,지혜:4,정신:6,매력:4,내공:2,운:4},
+    item:"출처를 알 수 없는 동전",
+    desc:"누구의 보호도 받지 못한 채 홀로 살아왔습니다. 타인을 의지하지 않는 강한 정신과 빠른 눈치를 갖췄지만 정식으로 내공을 수련할 기회는 없었습니다."
+  }
+];
+
+const lockedJobs = [
+  {
+    id:"merchant", name:"상단가 자제", trait:"금의옥식(金衣玉食)",
+    changes:"매력 +2 / 근력 -2",
+    stats:{체력:4,근력:2,민첩:4,지혜:4,정신:4,매력:6,내공:4,운:4},
+    item:"상단의 옥패",
+    desc:"대대로 장사를 이어온 상단가에서 부족함 없이 자랐습니다. 거래와 예법에는 익숙하지만, 칼끝이 오가는 거친 강호는 아직 낯섭니다.",
+    unlock:"재물과 인연을 쌓아 해금"
+  },
+  {
+    id:"martial", name:"무가 자제", trait:"가전무공(家傳武功)",
+    changes:"내공 +2 / 운 -2",
+    stats:{체력:4,근력:4,민첩:4,지혜:4,정신:4,매력:4,내공:6,운:2},
+    item:"가문의 목검",
+    desc:"대대로 무공을 익혀온 가문에서 태어나 어려서부터 수련을 거듭했습니다. 무공은 익숙하지만 가문의 이름과 기대 또한 등에 짊어지고 있습니다.",
+    unlock:"무림의 인연을 찾아 해금"
+  },
+  {
+    id:"scholar", name:"서생", trait:"박학다식(博學多識)",
+    changes:"지혜 +2 / 체력 -2",
+    stats:{체력:2,근력:4,민첩:4,지혜:6,정신:4,매력:4,내공:4,운:4},
+    item:"낡은 서책",
+    desc:"서책과 글 속에서 세상을 배웠습니다. 사람과 세상의 이치는 잘 알지만, 직접 몸으로 부딪혀본 경험은 많지 않습니다.",
+    unlock:"학문과 서책의 길을 열어 해금"
+  }
+];
+
+
+let state = {job:null, gender:null};
+
+const screens = [...document.querySelectorAll(".screen")];
+let transitionTimer=null;
+let transitionEndTimer=null;
+let transitionTarget=null;
+
+function show(id, message=""){
+  const overlay=document.getElementById("transition");
+  const text=document.getElementById("transitionText");
+  if(transitionTimer) clearTimeout(transitionTimer);
+  if(transitionEndTimer) clearTimeout(transitionEndTimer);
+  transitionTarget=id;
+  text.textContent=message;
+  text.classList.remove("transition-text-in");
+  void text.offsetWidth;
+  text.classList.add("transition-text-in");
+  overlay.classList.add("show")
+  randomJianghuPhrase();;
+
+  transitionTimer=setTimeout(()=>{
+    screens.forEach(s=>s.classList.toggle("active",s.id===transitionTarget));
+    window.scrollTo({top:0,behavior:"auto"});
+    transitionEndTimer=setTimeout(()=>overlay.classList.remove("show"),300);
+  },1200);
+}
+
+document.getElementById("transition").addEventListener("click",()=>{
+  if(!document.getElementById("transition").classList.contains("show")) return;
+  if(transitionTimer) clearTimeout(transitionTimer);
+  const overlay=document.getElementById("transition");
+  screens.forEach(s=>s.classList.toggle("active",s.id===transitionTarget));
+  window.scrollTo({top:0,behavior:"auto"});
+  transitionEndTimer=setTimeout(()=>overlay.classList.remove("show"),120);
+});
+function renderJobs(){
+  const box=document.getElementById("jobs");
+  box.innerHTML="";
+
+  jobs.forEach(job=>{
+    const wrap=document.createElement("div");
+    wrap.className="job-wrap";
+
+    const b=document.createElement("button");
+    b.className="job";
+    b.innerHTML=`
+      <div>
+        <div class="job-name">${job.name}</div>
+        <div class="job-sub">${job.trait}</div>
+      </div>`;
+
+    const detail=document.createElement("div");
+    detail.className="job-inline-detail";
+    detail.style.display="none";
+
+    b.addEventListener("click",()=>{
+      const wasOpen=detail.style.display!=="none";
+      document.querySelectorAll(".job-inline-detail").forEach(el=>el.style.display="none");
+      document.querySelectorAll(".job").forEach(el=>el.classList.remove("selected"));
+      if(wasOpen) return;
+
+      b.classList.add("selected");
+
+      const stats=Object.entries(job.stats)
+        .map(([k,v])=>`<div class="stat"><small>${k}</small><b>${v}</b></div>`)
+        .join("");
+
+      detail.innerHTML=`
+        <div class="detail">
+          <div class="desc">${job.desc}</div>
+          <div class="trait">${job.trait}</div>
+          <div class="change">${job.changes.split(" / ").map(x=>{
+            const plus=x.includes("+");
+            return `<span class="${plus?"plus":"minus"}">${x}</span>`;
+          }).join(" / ")}</div>
+          <div class="item">소지품 · ${job.item}</div>
+          <div class="small">기초 능력</div>
+          <div class="stats">${stats}</div>
+          <button type="button" class="proceed" onclick="proceedJob('${job.id}')">이 삶으로 나아간다</button>
+        </div>`;
+
+      detail.style.display="block";
+    });
+
+    wrap.appendChild(b);
+    wrap.appendChild(detail);
+    box.appendChild(wrap);
+  });
+
+  lockedJobs.forEach(job=>{
+    const wrap=document.createElement("div");
+    wrap.className="job-wrap";
+
+    const b=document.createElement("button");
+    b.className="job locked-job";
+    b.innerHTML=`
+      <span class="lock-icon">🔒</span>
+      <div>
+        <div class="job-name">???</div>
+        <div class="job-sub">잠겨 있음 · ${job.unlock}</div>
+      </div>`;
+
+    const detail=document.createElement("div");
+    detail.className="job-inline-detail";
+    detail.style.display="none";
+
+    b.addEventListener("click",()=>{
+      const wasOpen=detail.style.display!=="none";
+      document.querySelectorAll(".job-inline-detail").forEach(el=>el.style.display="none");
+      document.querySelectorAll(".job").forEach(el=>el.classList.remove("selected"));
+      if(wasOpen) return;
+
+      b.classList.add("selected");
+      detail.innerHTML=`
+        <div class="detail locked-detail">
+          <div class="desc">???</div>
+          <div class="trait">???</div>
+          <div class="change"><span class="unknown">???</span></div>
+          <div class="item">소지품 · ???</div>
+          <div class="small">기초 능력</div>
+          <div class="stats">${Object.keys(job.stats).map(k=>`<div class="stat"><small>${k}</small><b>?</b></div>`).join("")}</div>
+          <div class="lock-note">🔒 잠겨 있음 · ${job.unlock}</div>
+        </div>`;
+
+      detail.style.display="block";
+    });
+
+    wrap.appendChild(b);
+    wrap.appendChild(detail);
+    box.appendChild(wrap);
+  });
+}
+
+function selectJob(id){
+  const target=jobs.find(j=>j.id===id);
+  if(target){
+    const button=[...document.querySelectorAll(".job")].find(b=>b.querySelector(".job-name")?.textContent===target.name);
+    if(button) button.click();
+  }
+}
+function proceedJob(id){
+  const target=jobs.find(j=>j.id===id);
+  if(!target) return;
+
+  state.job=target;
+  document.querySelectorAll(".job").forEach(b=>b.classList.remove("selected"));
+
+  // 선택한 출신을 기억한 뒤 성별 선택 화면으로 이동
+  show("genderScreen","강호에 들다");
+}
+
+document.getElementById("startBtn").addEventListener("click",()=>show("jobScreen","강호에 들다"));
+document.getElementById("jobBack").addEventListener("click",()=>show("titleScreen"));
+document.getElementById("genderBack").addEventListener("click",()=>show("jobScreen",""));
+document.getElementById("loadBtn").addEventListener("click",()=>{
+  const saved=localStorage.getItem("yuranggangho_save");
+  const n=document.getElementById("titleNotice");
+  n.style.display="block";
+  n.textContent=saved?"저장된 강호행이 있습니다. 0.1에서는 새 삶의 출강을 먼저 제공합니다.":"저장된 강호행이 없습니다.";
+});
+document.getElementById("quitBtn").addEventListener("click",()=>{
+  document.getElementById("titleNotice").style.display="block";
+  document.getElementById("titleNotice").textContent="강호를 떠났습니다. 브라우저 탭을 닫으면 됩니다.";
+});
+document.querySelectorAll(".gender-card").forEach(card=>{
+  card.addEventListener("click",()=>{
+    state.gender=card.dataset.gender;
+    document.querySelectorAll(".gender-card").forEach(x=>x.classList.remove("selected"));
+    card.classList.add("selected");
+    document.getElementById("genderConfirm").style.display="block";
+    document.getElementById("chosenText").textContent=`${state.job.name} · ${state.gender}`;
+  });
+});
+document.getElementById("beginLife").addEventListener("click",()=>{
+  if(!state.job||!state.gender)return;
+  const j=state.job;
+  document.getElementById("lifeSummary").innerHTML=
+    `<strong style="color:var(--gold2);font-size:19px">${state.gender} · ${j.name}</strong><br><br>`+
+    `${j.trait}<br><span class="small">${j.item}</span>`;
+  show("confirmScreen","");
+});
+
+document.getElementById("confirmBack").addEventListener("click",()=>{
+  show("genderScreen","");
+});
+
+document.getElementById("confirmLife").addEventListener("click",()=>{
+  if(!state.job||!state.gender)return;
+  const j=state.job;
+  const total=Object.values(j.stats).reduce((a,b)=>a+b,0);
+  localStorage.setItem("yuranggangho_save",JSON.stringify({
+    version:"0.1",job:j.id,gender:state.gender,stats:j.stats,total
+  }));
+  document.getElementById("gameIntro").innerHTML=
+    `${state.gender}의 모습으로 <strong style="color:var(--gold2)">${j.name}</strong>의 삶을 품고, 강호에 발을 들였습니다.`;
+  document.getElementById("gameSummary").innerHTML=`
+    <b style="color:var(--gold2)">0.1 — 강호행의 시작</b><br><br>
+    출신 · ${j.name}<br>
+    성별 · ${state.gender}<br>
+    기질 · ${j.trait}<br>
+    소지품 · ${j.item}<br>
+    기초 능력 · ${total}<br><br>
+    <span class="small">${randomIntro(j.id)}</span>`;
+  show("gameScreen", state.gender==="사내" ? "사내의 모습으로 길을 나섰다." : "여인의 모습으로 길을 나섰다.");
+});
+renderJobs();
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const genderButtons=document.querySelectorAll('[data-gender]');
+  genderButtons.forEach(btn=>{
+    btn.disabled=false;
+    btn.removeAttribute("aria-disabled");
+    btn.addEventListener("click",()=>{
+      genderButtons.forEach(b=>b.classList.remove("selected"));
+      btn.classList.add("selected");
+      if(typeof gender !== "undefined"){
+        gender=btn.dataset.gender;
+      }
+    });
+  });
+});
+/* Mobile web interaction compatibility */
+(function(){
+  if (window.__YURANG_MOBILE_PATCH__) return;
+  window.__YURANG_MOBILE_PATCH__ = true;
+
+  document.addEventListener("pointerup", function(e){
+    const el = e.target.closest("button, .job, .gender-card");
+    if (!el || el.disabled) return;
+    // Let the native click handler remain authoritative; this only prevents
+    // accidental text-selection/gesture behavior on touch screens.
+    if (e.pointerType === "touch") {
+      e.preventDefault();
+    }
+  }, {passive:false});
+})();
+
+</script>
+
+</body>
+</html>
