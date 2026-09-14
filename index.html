@@ -1115,6 +1115,19 @@ button, input, textarea, select, .chapter-story, .chapter-prompt, .chapter-choic
 .title-art-menu .title-art-hit button::before,.title-art-menu .title-art-hit button::after{display:none!important;content:none!important;}
 </style>
 
+<style id="title-stage-final-fix">
+/* 타이틀 배경과 UI를 동일한 2:3 좌표계에 고정 */
+#titleScreen.title-art-screen{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;overflow:hidden!important;}
+#titleScreen.title-art-screen .title-art-bg{position:absolute!important;left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;width:min(100vw,66.6666667vh)!important;height:min(150vw,100vh)!important;transform:translate(-50%,-50%)!important;background-size:100% 100%!important;background-position:center!important;background-repeat:no-repeat!important;}
+#titleScreen.title-art-screen .title-art-menu{position:absolute!important;left:50%!important;top:50%!important;width:min(100vw,66.6666667vh)!important;height:min(150vw,100vh)!important;transform:translate(-50%,-50%)!important;z-index:20!important;pointer-events:none!important;}
+#titleScreen.title-art-screen .title-art-hit{box-sizing:border-box!important;}
+#titleScreen.title-art-screen .title-art-hit button{box-sizing:border-box!important;}
+@media (max-width:600px){
+  #titleScreen.title-art-screen .title-art-bg,
+  #titleScreen.title-art-screen .title-art-menu{width:min(100vw,66.6666667vh)!important;height:min(150vw,100vh)!important;}
+}
+</style>
+
 <style id="readability-colors-v2">
 /* 가독성 강화: 타이틀 UI 분위기는 유지하고 본문/상태 정보 대비를 높임 */
 :root{
@@ -1415,6 +1428,93 @@ button,input,textarea,select{
 @media(max-width:520px){
   .title-art-menu .title-menu-label{font-size:13px!important;letter-spacing:.8px!important}
   .title-art-menu .title-menu-desc{font-size:7px!important;margin-top:2px!important}
+}
+</style>
+
+<style id="mobile-title-coordinate-fix">
+/* FINAL: title background and UI share the exact same 2:3 coordinate canvas. */
+#titleScreen.title-art-screen .title-art-bg{
+  position:absolute!important;
+  width:min(100vw,66.6666667vh)!important;
+  height:min(150vw,100vh)!important;
+  left:50%!important; top:50%!important;
+  right:auto!important; bottom:auto!important;
+  inset:auto!important;
+  transform:translate(-50%,-50%)!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+}
+#titleScreen.title-art-screen .title-art-menu{
+  position:absolute!important;
+  width:min(100vw,66.6666667vh)!important;
+  height:min(150vw,100vh)!important;
+  left:50%!important; top:50%!important;
+  right:auto!important; bottom:auto!important;
+  inset:auto!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important;
+}
+#titleScreen.title-art-screen .title-art-menu .title-art-hit{
+  box-sizing:border-box!important;
+}
+@media (max-width:600px){
+  #titleScreen.title-art-screen .title-art-bg,
+  #titleScreen.title-art-screen .title-art-menu{
+    width:min(100vw,66.6666667vh)!important;
+    height:min(150vw,100vh)!important;
+  }
+}
+</style>
+
+<style id="title-final-coordinate-lock">
+/* FINAL: one physical 2:3 stage for both artwork and title controls */
+#titleScreen.title-art-screen{
+  position:fixed!important; inset:0!important; width:100vw!important; height:100vh!important;
+  padding:0!important; margin:0!important; overflow:hidden!important; background:#000!important;
+}
+#titleScreen.title-art-screen .title-art-bg,
+#titleScreen.title-art-screen .title-art-menu{
+  position:absolute!important;
+  left:50%!important; top:50%!important;
+  width:min(100vw,66.6666667vh)!important;
+  height:auto!important; aspect-ratio:2 / 3!important;
+  transform:translate(-50%,-50%)!important;
+  margin:0!important; padding:0!important;
+}
+#titleScreen.title-art-screen .title-art-bg{
+  background-size:100% 100%!important; background-position:center!important; background-repeat:no-repeat!important;
+  z-index:1!important;
+}
+#titleScreen.title-art-screen .title-art-menu{
+  z-index:20!important; pointer-events:none!important;
+}
+#titleScreen.title-art-screen .title-art-hit{
+  position:absolute!important; left:32.42%!important; width:35.16%!important;
+  height:5.47%!important; transform:none!important; margin:0!important; padding:0!important;
+  pointer-events:auto!important;
+}
+#titleScreen.title-art-screen .title-art-start{top:46.42%!important}
+#titleScreen.title-art-screen .title-art-load{top:52.99%!important}
+#titleScreen.title-art-screen .title-art-info{top:59.38%!important}
+#titleScreen.title-art-screen .title-art-quit{top:65.76%!important}
+#titleScreen.title-art-screen .title-art-hit button{
+  width:100%!important; height:100%!important; margin:0!important; padding:0 5px!important;
+  display:flex!important; flex-direction:column!important; align-items:center!important; justify-content:center!important;
+  box-sizing:border-box!important; overflow:hidden!important;
+}
+#titleScreen.title-art-screen .title-menu-label,
+#titleScreen.title-art-screen .title-menu-desc{
+  position:static!important; display:block!important; width:100%!important; max-width:100%!important;
+  box-sizing:border-box!important; text-align:center!important; white-space:nowrap!important;
+  overflow:hidden!important; text-overflow:clip!important;
+  transform:none!important; margin-left:0!important; margin-right:0!important;
+}
+#titleScreen.title-art-screen .title-menu-label{font-size:13px!important; line-height:1.05!important;}
+#titleScreen.title-art-screen .title-menu-desc{font-size:7px!important; line-height:1.05!important; margin-top:2px!important;}
+@media(max-width:600px){
+  #titleScreen.title-art-screen .title-menu-label{font-size:12px!important;}
+  #titleScreen.title-art-screen .title-menu-desc{font-size:6px!important;}
 }
 </style>
 </head>
