@@ -1517,6 +1517,9 @@ button,input,textarea,select{
   #titleScreen.title-art-screen .title-menu-desc{font-size:6px!important;}
 }
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
 <div id="transition" aria-hidden="true"><div class="transition-text" id="transitionText"></div></div>
@@ -1560,7 +1563,7 @@ button,input,textarea,select{
         <strong>여인</strong><span>여인의 몸으로 강호에 들어선다.</span>
       </button>
     </div>
-    <div class="actions" style="margin-top:22px"><div class="gender-actions"><button type="button" id="beginLife" class="start-btn">다음</button><button type="button" id="genderBack" class="back-btn">뒤로</button></div></div>
+    <div class="actions" style="margin-top:22px"><div class="gender-actions"><button type="button" id="genderBack" class="back-btn">뒤로</button><button type="button" id="beginLife" class="start-btn">다음</button></div></div>
   </div>
 </section>
 
@@ -1572,7 +1575,7 @@ button,input,textarea,select{
   <div class="gender-wrap">
     <div id="lifeSummary" class="notice" style="text-align:center"></div>
     <div class="actions" style="margin-top:25px">
-      <div class="final-actions"><button type="button" id="confirmLife" class="start-btn">선택한다</button><button type="button" id="confirmBack" class="back-btn">돌아간다</button></div>
+      <div class="final-actions"><button type="button" id="confirmBack" class="back-btn">돌아간다</button><button type="button" id="confirmLife" class="start-btn">선택한다</button></div>
     </div>
   </div>
 </section>
@@ -1586,7 +1589,7 @@ button,input,textarea,select{
   <div class="faction-tabs" id="factionTabs">
     <button type="button" class="faction-tab active" data-faction-cat="overview">강호 개요</button>
     <button type="button" class="faction-tab" data-faction-cat="guPaIlBang">구파일방</button>
-    <button type="button" class="faction-tab" data-faction-cat="fiveFamilies">5대세가</button>
+    <button type="button" class="faction-tab" data-faction-cat="fiveFamilies">오대세가</button>
     <button type="button" class="faction-tab" data-faction-cat="evil">사마외도</button>
     <button type="button" class="faction-tab" data-faction-cat="outside">새외</button>
   </div>
@@ -2474,7 +2477,7 @@ document.addEventListener("click",(e)=>{const p=e.target.closest("[data-proceed-
 <script>
 /* 유랑강호 — 강호 세력 데이터 0.1 */
 const factionData = {
-  categoryOrder: ['구파일방','5대세가','사마외도','새외'],
+  categoryOrder: ['구파일방','오대세가','사마외도','새외'],
   guPaIlBang: [
     {name:'소림',hanja:'少林',type:'정파',key:'정면승부 · 외공 · 불가',desc:'몸을 닦고 마음을 다스리는 정통 불가 문파.',style:'체력·방어·지속전',quote:'몸을 닦으면 마음이 맑아지고, 마음이 맑으면 길이 보인다.'},
     {name:'무당',hanja:'武當',type:'정파',key:'태극 · 내공 · 유연함',desc:'강함을 흘려 되돌리는 태극의 무학을 잇는다.',style:'내공·회피·반격',quote:'강한 자는 부러지고, 흐르는 물은 길을 만든다.'},
@@ -2524,7 +2527,7 @@ const factionBack=document.getElementById('factionBack');
 const factionCategoryInfo={
   overview:{title:'강호의 세력',text:'중원에는 정파와 세가가 뿌리내리고, 그 바깥에는 사파와 마교, 이름조차 낯선 외도와 새외의 세력이 존재한다. 강호록은 당신이 살아가며 마주치는 세력과 그들의 무공, 성향, 이야기를 기록한다.'},
   guPaIlBang:{title:'구파일방 · 九派一幇',text:'중원의 정통 무림을 대표하는 아홉 문파와 하나의 방회. 같은 정파라 해도 추구하는 무공과 길은 서로 다르다.'},
-  fiveFamilies:{title:'5대세가 · 五大世家',text:'문파가 사제의 인연으로 이어진다면 세가는 혈통과 가문의 이름으로 이어진다. 명예와 비전, 가문의 이해관계가 강호의 흐름을 바꾼다.'},
+  fiveFamilies:{title:'오대세가 · 五大世家',text:'문파가 사제의 인연으로 이어진다면 세가는 혈통과 가문의 이름으로 이어진다. 명예와 비전, 가문의 이해관계가 강호의 흐름을 바꾼다.'},
   evil:{title:'사마외도 · 邪魔外道',text:'사파는 이익을, 마교는 신념을, 외도는 금기를 좇는다. 모두가 악인은 아니며, 모두가 같은 길을 걷지도 않는다.'},
   outside:{title:'새외 · 塞外',text:'중원의 경계 밖에서 자신들만의 문화와 무공을 이어가는 세력. 중원의 정파와 사파라는 구분만으로는 설명할 수 없는 강호다.'}
 };
@@ -2618,6 +2621,20 @@ renderFactionCategory('overview');
 })();
 </script>
 </body>
+
+<style id="title-font-unify-final">
+/* PC/모바일 동일 폰트 강제: 시스템 한글 폰트 차이를 없앰 */
+html, body, #app, #app *, #app *::before, #app *::after, button, input, textarea, select {
+  font-family: "Noto Serif KR", serif !important;
+  font-synthesis: none !important;
+}
+.title-art-menu .title-art-hit button,
+.title-art-menu .title-menu-label,
+.title-art-menu .title-menu-desc {
+  font-family: "Noto Serif KR", serif !important;
+  font-synthesis: none !important;
+}
+</style>
 </html><style id="title-menu-font-reduce-only">
 /* 메뉴 박스 안 글씨 크기만 축소 — 위치/간격/UI는 변경하지 않음 */
 .title-art-menu .title-menu-label{font-size:13px!important;letter-spacing:.8px!important;}
